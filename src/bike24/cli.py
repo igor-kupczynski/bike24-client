@@ -7,6 +7,7 @@ import json
 import sys
 from collections.abc import Sequence
 from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
 from .client import Bike24Client
@@ -32,6 +33,29 @@ def build_parser() -> argparse.ArgumentParser:
 
     order = subparsers.add_parser("order", help="Show one order and its items")
     order.add_argument("order_number", help="BIKE24 order number")
+
+    return_form = subparsers.add_parser(
+        "return-form",
+        help="Create an editable return form from an order",
+    )
+    return_form.add_argument("order_number", help="BIKE24 order number")
+    return_form.add_argument(
+        "--item",
+        dest="item_numbers",
+        action="append",
+        help="Item number to include; repeat to select multiple (default: all)",
+    )
+    return_form.add_argument(
+        "--output",
+        "-o",
+        type=Path,
+        help="Output PDF (default: BIKE24_return_ORDER_NUMBER.pdf)",
+    )
+    return_form.add_argument(
+        "--force",
+        action="store_true",
+        help="Replace an existing output file",
+    )
     return parser
 
 
@@ -45,12 +69,23 @@ def main(argv: Sequence[str] | None = None) -> int:
                 result: Any = client.get_personal_details()
             elif args.command == "orders":
                 result = client.list_orders(limit=args.limit)
+            elif args.command == "return-form":
+                output = args.output or Path(f"BIKE24_return_{args.order_number}.pdf")
+                path = client.create_return_form(
+                    args.order_number,
+                    output,
+                    item_numbers=args.item_numbers,
+                    overwrite=args.force,
+                )
+                result = {"path": str(path), "editable": True}
             else:
                 result = client.get_order(args.order_number)
     except (Bike24Error, ValueError) as exc:
         parser.exit(1, f"bike24: error: {exc}\n")
 
-    if isinstance(result, list):
+    if isinstance(result, dict):
+        payload = result
+    elif isinstance(result, list):
         payload = [asdict(item) for item in result]
     else:
         payload = asdict(result)

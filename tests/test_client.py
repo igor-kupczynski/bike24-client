@@ -202,6 +202,21 @@ def test_order_number_mismatch_raises_bike24_error() -> None:
         client.get_order("999999999")
 
 
+def test_create_return_form_fetches_order_and_profile(tmp_path: Path) -> None:
+    backend = FakeBackend()
+    client = Bike24Client("user", "password", backend=backend)
+    output = tmp_path / "return.pdf"
+
+    result = client.create_return_form("123456789", output)
+
+    assert result == output.resolve()
+    assert output.exists()
+    assert backend.get_paths == [
+        "/my-account/orderlist/123456789",
+        "/api/v2/user-account",
+    ]
+
+
 def test_list_order_limits() -> None:
     client = Bike24Client("user", "password", backend=FakeBackend())
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from collections.abc import Callable
 from os import PathLike
+from pathlib import Path
 from typing import Any, Protocol, Self, TypeVar
 
 from dotenv import dotenv_values
@@ -13,6 +14,7 @@ from .browser import ChromeBackend
 from .errors import AuthenticationError, Bike24Error
 from .models import OrderDetails, OrderSummary, PersonalDetails
 from .parsers import parse_order_details, parse_order_list
+from .returns import build_return_form_data, write_return_form
 
 T = TypeVar("T")
 
@@ -123,6 +125,25 @@ class Bike24Client:
                 f"BIKE24 returned order {order.number!r}, expected {normalized!r}"
             )
         return order
+
+    def create_return_form(
+        self,
+        order_number: str | int,
+        output_path: str | PathLike[str],
+        *,
+        item_numbers: list[str] | None = None,
+        overwrite: bool = False,
+    ) -> Path:
+        """Create a local editable PDF populated from an order and profile."""
+
+        order = self.get_order(order_number)
+        profile = self.get_personal_details()
+        data = build_return_form_data(
+            profile,
+            order,
+            item_numbers=item_numbers,
+        )
+        return write_return_form(data, output_path, overwrite=overwrite)
 
     def close(self) -> None:
         self._authenticated = False

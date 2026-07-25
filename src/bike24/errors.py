@@ -11,3 +11,7 @@ class AuthenticationError(Bike24Error):
 
 class ParseError(Bike24Error):
     """Raised when a BIKE24 page no longer matches the expected structure."""
+
+
+class ReturnFormError(Bike24Error):
+    """Raised when a BIKE24 return form cannot be created."""

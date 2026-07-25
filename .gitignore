@@ -12,6 +12,9 @@ playwright/.auth/
 playwright-report/
 test-results/
 blob-report/
+/BIKE24_return_*.pdf
+/output/pdf/
+/tmp/pdfs/
 
 # Local review/tool state
 .grok/

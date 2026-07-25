@@ -34,9 +34,17 @@ uv run bike24 orders --limit 5
 
 # One order with its products
 uv run bike24 order ORDER_NUMBER
+
+# Editable return form, prefilled from the order and profile
+uv run bike24 return-form ORDER_NUMBER
+uv run bike24 return-form ORDER_NUMBER --item ITEM_NUMBER
 ```
 
-The JSON contains private account and purchase data. Handle it accordingly.
+The form includes every product by default (up to four). Repeat `--item` to
+select specific products.
+
+The commands print JSON; `return-form` also writes a PDF. Both can contain
+private account and purchase data. Handle them accordingly.
 
 ## Python
 

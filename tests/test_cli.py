@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 from typing import Any, Self
 
 import pytest
@@ -15,6 +16,7 @@ class StubClient:
     error: Exception | None = None
     received_limit: int | None = None
     received_order_number: str | None = None
+    received_return: tuple[str, Path, list[str] | None, bool] | None = None
     closed = False
 
     @classmethod
@@ -43,6 +45,22 @@ class StubClient:
         type(self).received_order_number = order_number
         return self._result()
 
+    def create_return_form(
+        self,
+        order_number: str,
+        output_path: Path,
+        *,
+        item_numbers: list[str] | None = None,
+        overwrite: bool = False,
+    ) -> Path:
+        type(self).received_return = (
+            order_number,
+            output_path,
+            item_numbers,
+            overwrite,
+        )
+        return output_path.resolve()
+
 
 @pytest.fixture(autouse=True)
 def stub_client(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -50,6 +68,7 @@ def stub_client(monkeypatch: pytest.MonkeyPatch) -> None:
     StubClient.result = None
     StubClient.received_limit = None
     StubClient.received_order_number = None
+    StubClient.received_return = None
     StubClient.closed = False
     monkeypatch.setattr(cli, "Bike24Client", StubClient)
 
@@ -104,6 +123,32 @@ def test_order_command_emits_items(capsys: pytest.CaptureFixture[str]) -> None:
     payload = json.loads(capsys.readouterr().out)
     assert StubClient.received_order_number == "123"
     assert payload["items"][0]["item_number"] == "ITEM1"
+
+
+def test_return_form_command_passes_selection_and_output(
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    output = tmp_path / "return.pdf"
+
+    assert (
+        cli.main(
+            [
+                "return-form",
+                "123",
+                "--item",
+                "ITEM1",
+                "--output",
+                str(output),
+                "--force",
+            ]
+        )
+        == 0
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    assert StubClient.received_return == ("123", output, ["ITEM1"], True)
+    assert payload == {"path": str(output.resolve()), "editable": True}
 
 
 def test_cli_reports_public_errors_and_nonzero_exit(
