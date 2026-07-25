@@ -1,0 +1,34 @@
+# Local credentials and environment
+.env
+.env.*
+!.env.example
+
+# Captured browser traffic can contain credentials, cookies, and personal data
+*.har
+storage-state*.json
+trace.zip
+playwright/.auth/
+.auth/
+playwright-report/
+test-results/
+blob-report/
+
+# Local review/tool state
+.grok/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+*.egg-info/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bike24-client"
+version = "0.1.0"
+description = "Read-only Python client for a BIKE24 customer account"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "beautifulsoup4>=4.12,<5",
+    "playwright>=1.50,<2",
+    "python-dotenv>=1,<2",
+]
+
+[project.scripts]
+bike24 = "bike24.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8,<9",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bike24"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
